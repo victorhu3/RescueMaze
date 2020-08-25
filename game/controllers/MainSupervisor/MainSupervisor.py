@@ -11,6 +11,7 @@ import datetime
 import threading
 import ControllerUploader
 import glob
+import shutil
 
 # Create the instance of the supervisor class
 supervisor = Supervisor()
@@ -331,10 +332,14 @@ def resetControllerFile(number: int) -> None:
     '''Remove the controller'''
     path = os.path.dirname(os.path.abspath(__file__))
     path = os.path.join(path, "robot"+str(number)+"Controller")
-    path = os.path.join(path, "robot"+str(number)+"Controller.*")
+#    path = os.path.join(path, "robot"+str(number)+"Controller.*")
+    path = os.path.join(path, "*")
 
     for file in glob.glob(path):
-        os.remove(file)
+        if os.path.isfile(file):
+            os.remove(file)
+        else:
+            shutil.rmtree(file)
 
 def resetController(num: int) -> None:
     '''Send message to robot window to say that controller has been unloaded'''

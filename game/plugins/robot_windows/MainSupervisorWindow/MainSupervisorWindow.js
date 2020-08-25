@@ -298,9 +298,9 @@ function fileOpened(id){
 		var nameParts = file.name.split(".");
 
 		//If there are parts to the name
-		if (nameParts.length > 1){
+		if (nameParts.length > 1 || nameParts[0] == "Makefile"){
 			//If the last part is "py" - a python file
-			let acceptTypes = ["py", "exe", "class", "jar", "bsg", "m"]
+			let acceptTypes = ["py", "cpp", "h", "c", "java", "Makefile"]
 			if(acceptTypes.indexOf(nameParts[nameParts.length - 1]) != -1 ){
 				const fd = new FormData();
 				for (let i = 0; i < files.length; i++) {

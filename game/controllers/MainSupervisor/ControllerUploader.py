@@ -14,6 +14,7 @@ __author__ = "bones7456"
 __home_page__ = "http://li2z.cn/"
 
 import os
+import subprocess
 import posixpath
 import http.server
 import urllib.request, urllib.parse, urllib.error
@@ -126,11 +127,58 @@ class SimpleHTTPRequestHandler(http.server.BaseHTTPRequestHandler):
                             preline = line
         if len(uploaded_files) == 0:
             return (False, "No file selected.")
-        if len(uploaded_files) == 1:
-            newpath = os.path.join(os.path.dirname(uploaded_files[0]), os.path.basename(os.path.dirname(uploaded_files[0]))  + os.path.splitext(uploaded_files[0])[1])
-            os.rename(uploaded_files[0],newpath)
+        else:
+         #   newpath = os.path.join(os.path.dirname(uploaded_files[0]), os.path.basename(os.path.dirname(uploaded_files[0]))  + os.path.splitext(uploaded_files[0])[1])
+         #   os.rename(uploaded_files[0],newpath)
+
+            os.chdir("robot0Controller")
+
+            files =  os.listdir()
+
+            print("\n--- Uploaded Files ---")
+            for file in files:
+                print(file)
+            print("")
+
+            if "Makefile" in files:
+                print("--- Building Code ---")
+                subprocess.run(['make'])
+            elif any(file.endswith(".cpp") for file in files) or any(file.endswith(".c") for file in files):
+                print("Error: No Makefile found for C/C++ code.")
+            
+            WEBOTS_HOME = os.environ["WEBOTS_HOME"]
+
+            class_path = WEBOTS_HOME + "/lib/controller/java/Controller.jar:."
+            if "CLASSPATH" in os.environ:
+                class_path += ":" + os.environ["CLASSPATH"]
+            
+
+            javaFiles = []
+            for file in files:
+                if file.endswith(".java"):
+                    javaFiles.append(file)
+
+            if len(javaFiles) > 0:
+                javaCompile = ["javac", "-Xlint", "-classpath", class_path] + javaFiles
+                print(' '.join(javaCompile))
+                subprocess.run(javaCompile)
+
+                classFiles = [ file[:-4] + "class" for file in javaFiles]
+
+                mainFile = ""
+                for file in classFiles:
+                    proc = subprocess.run(["javap", file], stdout = subprocess.PIPE)
+                    if proc.stdout.find(b"public static void main(") != -1:
+                        mainFile = file
+                        os.rename(file, "robot0Controller.class")
+                        break
+    
+                #jar = ["jar", "cfe", "robot0Controller.jar", mainFile[:-6]] + classFiles
+               # print(' '.join(jar))
+               # subprocess.run(jar)
+
             return (True, "OK")
-        return (False, "Built-in compilation is not supported at this time. Select only one file to be executed.")
+        #return (False, "Built-in compilation is not supported at this time. Select only one file to be executed.")
 
     def send_head(self):
         """Common code for GET and HEAD commands.
